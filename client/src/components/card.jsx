@@ -26,7 +26,7 @@ const Card = ({id,heading,description,image_url,image_id,priority,get_list}) => 
             <div className="info">
                 <h4>{heading}</h4>
                 <p>{description}</p>
-                <p>{priority == 1 ? 'High': priority == 2 ? "Medium" : "Low"}</p>
+                <p style={{backgroundColor: "red",color:"white", padding:"10px", textAlign:"center"}}>{priority == 1 ? 'High': priority == 2 ? "Medium" : "Low"}</p>
             </div>
             <div>
                 <img src={image_url} width={'100px'}/>

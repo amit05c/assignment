@@ -100,10 +100,31 @@ const deleteTask = async (req, res) => {
   const updateTask = async (req, res) => {
     try {
       const { id } = req.params;
-      const { heading, description, image_name, priority } = req.body;
-  
-      // Start building the SQL query
-      let sql = "UPDATE tasks SET";
+      const { heading, description, priority,old_image_id,image_url } = req.body;
+      let newImage;
+      if(image_url){
+        const imageSql = "UPDATE images SET deleted = ? WHERE image_id = ?";
+        db.query(imageSql, [1,+old_image_id], (err, result) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json({ error: 'Internal Server Error' });
+          }
+          
+          // else {
+          //   res.send(result);
+          // }
+        });
+
+    
+      let imgsql = "INSERT INTO images (image_url) VALUES (?)"
+       db.query(imgsql, [image_url], (err,result) =>{
+          if (err) {
+              console.log(err);
+          
+            }else{
+              newImage = result.insertId
+            //  res.send(result) 
+            let sql = "UPDATE tasks SET";
       const values = [];
   
       // Check if each field is provided in req.body and add it to the SQL query
@@ -117,9 +138,9 @@ const deleteTask = async (req, res) => {
         values.push(description);
       }
   
-      if (image_name !== undefined) {
-        sql += " image_name = ?,";
-        values.push(image_name);
+      if (image_url !== undefined) {
+        sql += " image_id = ?,";
+        values.push(result.insertId);
       }
   
       if (priority !== undefined) {
@@ -141,6 +162,54 @@ const deleteTask = async (req, res) => {
           res.send(result);
         }
       });
+          }
+      })
+      } 
+      else{
+         // console.log("new image", newImage)
+  
+      // Start building the SQL query
+      let sql = "UPDATE tasks SET";
+      const values = [];
+  
+      // Check if each field is provided in req.body and add it to the SQL query
+      if (heading !== undefined) {
+        sql += " heading = ?,";
+        values.push(heading);
+      }
+  
+      if (description !== undefined) {
+        sql += " description = ?,";
+        values.push(description);
+      }
+  
+      if (image_url !== undefined) {
+        sql += " image_id = ?,";
+        values.push(newImage);
+      }
+  
+      if (priority !== undefined) {
+        sql += " priority = ?,";
+        values.push(priority);
+      }
+  
+      // Remove the trailing comma and add the WHERE clause
+      sql = sql.slice(0, -1); // Remove the trailing comma
+      sql += " WHERE id = ?"; // Add the WHERE clause for the specific task id
+      values.push(id); // Add the task id to the values array
+  
+      // Execute the SQL query
+      db.query(sql, values, (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+          res.send(result);
+        }
+      });
+      }
+
+      
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
@@ -153,22 +222,33 @@ const deleteTask = async (req, res) => {
   
     try {
       const { image_url } = req.body;
-      // console.log(priority)
+      // console.log("I am in kannur",image_url)
       let sql = "INSERT INTO images (image_url) VALUES (?)"
-      db.query(sql, [image_url], (err,result) =>{
+     return db.query(sql, [image_url], (err,result) =>{
           if (err) {
               console.log(err);
           }else{
-              console.log(result);
-              res.send(result) 
+             res.send(result) 
           }
       })
-      res.send(result); 
+      // res.send(result); 
     } catch (error) {
   
     }
   };
-  
+ 
+  // const deletedImage=()=>{
+  //   try {
+  //     const { id } = req.params
+  //     const deleted =1
+  //     let sql = "UPDATE image SET deleted = ? WHERE id = ?"
+  //     db.query(sql, [deleted,id], (err,result) =>{err ? console.log(err) : res.send(result)})
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(500).json({ error: 'Internal Server Error' });
+  // }
+  // }
+    
   
 
 module.exports={
